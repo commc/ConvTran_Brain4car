@@ -1,0 +1,328 @@
+{
+ "annotations": [
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141115_102451_908_1058/allfeatures_20141115_102451_908_1058.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141126_142224_3098_3248/allfeatures_20141126_142224_3098_3248.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141123_153224_354_504/allfeatures_20141123_153224_354_504.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141019_132726_808_958/allfeatures_20141019_132726_808_958.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141220_165000_445_595/allfeatures_20141220_165000_445_595.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141116_171127_686_836/allfeatures_20141116_171127_686_836.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141220_160639_732_882/allfeatures_20141220_160639_732_882.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141220_133828_1276_1426/allfeatures_20141220_133828_1276_1426.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141019_171915_748_898/allfeatures_20141019_171915_748_898.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rturn/20141105_155445_1248_1398/allfeatures_20141105_155445_1248_1398.csv",
+   "label": 4
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rturn/20141220_133125_473_623/allfeatures_20141220_133125_473_623.csv",
+   "label": 4
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141220_160538_1490_1640/allfeatures_20141220_160538_1490_1640.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141115_091255_1396_1546/allfeatures_20141115_091255_1396_1546.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lturn/20141019_174126_999_1149/allfeatures_20141019_174126_999_1149.csv",
+   "label": 2
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141019_141730_468_618/allfeatures_20141019_141730_468_618.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141220_131919_1651_1801/allfeatures_20141220_131919_1651_1801.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rchange/20141019_163941_208_358/allfeatures_20141019_163941_208_358.csv",
+   "label": 3
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141123_170010_239_389/allfeatures_20141123_170010_239_389.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141123_153123_1077_1224/allfeatures_20141123_153123_1077_1224.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rchange/20141220_135136_1035_1185/allfeatures_20141220_135136_1035_1185.csv",
+   "label": 3
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141025_142808_1250_1400/allfeatures_20141025_142808_1250_1400.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141115_092158_977_1127/allfeatures_20141115_092158_977_1127.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141220_164358_530_680/allfeatures_20141220_164358_530_680.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lturn/20141019_091522_1480_1630/allfeatures_20141019_091522_1480_1630.csv",
+   "label": 2
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141115_092628_689_839/allfeatures_20141115_092628_689_839.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141115_111730_840_990/allfeatures_20141115_111730_840_990.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lturn/20141220_140846_1361_1511/allfeatures_20141220_140846_1361_1511.csv",
+   "label": 2
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141123_170814_490_640/allfeatures_20141123_170814_490_640.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141123_160039_1520_1670/allfeatures_20141123_160039_1520_1670.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rturn/20141025_151544_1025_1175/allfeatures_20141025_151544_1025_1175.csv",
+   "label": 4
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141115_124235_1626_1776/allfeatures_20141115_124235_1626_1776.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rchange/20141220_164257_1_125/allfeatures_20141220_164257_1_125.csv",
+   "label": 3
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141126_143224_1211_1361/allfeatures_20141126_143224_1211_1361.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141123_173946_2337_2487/allfeatures_20141123_173946_2337_2487.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141102_101802_490_640/allfeatures_20141102_101802_490_640.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141126_144225_4968_5118/allfeatures_20141126_144225_4968_5118.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141123_165609_1140_1290/allfeatures_20141123_165609_1140_1290.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lturn/20141019_085226_506_656/allfeatures_20141019_085226_506_656.csv",
+   "label": 2
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rchange/20141019_133907_560_710/allfeatures_20141019_133907_560_710.csv",
+   "label": 3
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141116_155205_415_565/allfeatures_20141116_155205_415_565.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141220_133527_1_142/allfeatures_20141220_133527_1_142.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141126_142224_11597_11747/allfeatures_20141126_142224_11597_11747.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141019_132535_1229_1379/allfeatures_20141019_132535_1229_1379.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141019_171915_1557_1707/allfeatures_20141019_171915_1557_1707.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141116_155607_875_1025/allfeatures_20141116_155607_875_1025.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141220_133024_970_1120/allfeatures_20141220_133024_970_1120.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rchange/20141220_164558_829_979/allfeatures_20141220_164558_829_979.csv",
+   "label": 3
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141025_141223_1407_1557/allfeatures_20141025_141223_1407_1557.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141123_165007_229_379/allfeatures_20141123_165007_229_379.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lturn/20141220_133024_1_121/allfeatures_20141220_133024_1_121.csv",
+   "label": 2
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141116_152826_292_442/allfeatures_20141116_152826_292_442.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rturn/20141220_153545_159_309/allfeatures_20141220_153545_159_309.csv",
+   "label": 4
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141019_133122_382_532/allfeatures_20141019_133122_382_532.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141019_173724_232_382/allfeatures_20141019_173724_232_382.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141220_134432_1004_1154/allfeatures_20141220_134432_1004_1154.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rchange/20141123_163558_1379_1529/allfeatures_20141123_163558_1379_1529.csv",
+   "label": 3
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rchange/20141123_162251_122_272/allfeatures_20141123_162251_122_272.csv",
+   "label": 3
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141220_165401_1241_1391/allfeatures_20141220_165401_1241_1391.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rturn/20141025_141223_1125_1275/allfeatures_20141025_141223_1125_1275.csv",
+   "label": 4
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rturn/20141220_161342_1556_1706/allfeatures_20141220_161342_1556_1706.csv",
+   "label": 4
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rchange/20141101_153705_1_146/allfeatures_20141101_153705_1_146.csv",
+   "label": 3
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141220_163352_1133_1283/allfeatures_20141220_163352_1133_1283.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rchange/20141220_131116_1353_1503/allfeatures_20141220_131116_1353_1503.csv",
+   "label": 3
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141123_164502_135_285/allfeatures_20141123_164502_135_285.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141115_091756_167_317/allfeatures_20141115_091756_167_317.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141220_140846_1042_1192/allfeatures_20141220_140846_1042_1192.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lturn/20141126_094258_6992_7142/allfeatures_20141126_094258_6992_7142.csv",
+   "label": 2
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141025_141321_1246_1396/allfeatures_20141025_141321_1246_1396.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lturn/20141115_130048_1405_1555/allfeatures_20141115_130048_1405_1555.csv",
+   "label": 2
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rchange/20141220_161040_62_212/allfeatures_20141220_161040_62_212.csv",
+   "label": 3
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rchange/20141126_144225_16792_16942/allfeatures_20141126_144225_16792_16942.csv",
+   "label": 3
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141123_154028_720_870/allfeatures_20141123_154028_720_870.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141116_162000_711_861/allfeatures_20141116_162000_711_861.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rturn/20141107_134341_490_640/allfeatures_20141107_134341_490_640.csv",
+   "label": 4
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rturn/20141019_094336_685_835/allfeatures_20141019_094336_685_835.csv",
+   "label": 4
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141025_151544_347_497/allfeatures_20141025_151544_347_497.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141116_164815_735_885/allfeatures_20141116_164815_735_885.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141025_143537_107_257/allfeatures_20141025_143537_107_257.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/lchange/20141019_141730_222_372/allfeatures_20141019_141730_222_372.csv",
+   "label": 1
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/end_action/20141019_170809_486_636/allfeatures_20141019_170809_486_636.csv",
+   "label": 0
+  },
+  {
+   "filename": "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rchange/20141019_140917_1374_1524/allfeatures_20141019_140917_1374_1524.csv",
+   "label": 3
+  }
+ ]
+}
