@@ -77,13 +77,13 @@ class Brain4carDataset(Dataset):
                 dataset = dataset.transpose((1, 0, 2))
             if labels_shape[0] < labels_shape[1]:
                 labels = labels.transpose((1, 0))
+            # labels = labels[:,:,np.newaxis]
             
-            label_mask = labels == 0
-            labels = np.average(labels, axis=1, weights=~label_mask) - 1
-            
+            # label_mask = labels == 0
+            # labels = np.average(labels, axis=1, weights=~label_mask) - 1
             input_len = dataset.shape[1]
             input_channel = dataset.shape[-1]
-            output_len = len(tuple(set(labels)))
+            output_len = 6
             dataset_len = dataset.shape[0]
             max_length_sample_inTest = []
             labels = torch.Tensor(labels)    

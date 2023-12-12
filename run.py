@@ -12,6 +12,7 @@ from tqdm import tqdm
 import os
 
 from module.transformer import Transformer
+from module.transformer_20frame import Transformer_20frame
 from module.loss import Myloss
 from utils.random_seed import setup_seed
 from utils.visualization import result_visualization
@@ -50,8 +51,8 @@ reslut_figure_path = 'result_figure'  # 结果图像保存路径
 # path = "/home/ubuntu/zsj/GTN-master/MTS_dataset/WalkvsRun/WalkvsRun.mat"
 
 """brain4car"""
-brain4car_train_path = "/home/ubuntu/zsj/GTN-master/dataset/annotations/trainset/brain4cars_train_dataset_random.json"
-brain4car_test_path = "/home/ubuntu/zsj/GTN-master/dataset/annotations/validset/brain4cars_valid_dataset_random.json"
+brain4car_train_path = "/home/ubuntu/zsj/GTN-master/dataset/annotations/trainset/train_data_846483_fold2.pik"
+brain4car_test_path = "/home/ubuntu/zsj/GTN-master/dataset/annotations/testset/test_data_846483_fold2.pik"
 file_name = 'brain4cars'
 train_dataset = Brain4carDataset(brain4car_train_path)
 test_dataset = Brain4carDataset(brain4car_test_path)
@@ -63,7 +64,7 @@ draw_key = 1  # 大于等于draw_key才会保存图像
 
 
 # 超参数设置
-EPOCH = 250
+EPOCH = 100
 BATCH_SIZE = 32
 LR = 1e-4
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")  # 选择设备 CPU or GPU
@@ -74,7 +75,7 @@ d_hidden = 1024
 q = 8
 v = 8
 h = 8
-N = 1
+N = 8
 dropout = 0.3
 pe = True  # # 设置的是双塔中 score=pe score=channel默认没有pe
 mask = True  # 设置的是双塔中 score=input的mask score=channel默认没有mask
@@ -109,8 +110,11 @@ print(f'Number of classes: {d_output}')
 # ckpt = torch.load("/home/ubuntu/zsj/PFL-Non-IID-master/saved_model/ArabicDigits batch=64_statedict.pkl", map_location=DEVICE)
 
 # 创建Transformer模型
-net = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
+# net = Transformer(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
+#                   q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
+net = Transformer_20frame(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
                   q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
+
 loss_function = Myloss()
 if optimizer_name == 'Adagrad':
     optimizer = optim.Adagrad(net.parameters(), lr=LR)
@@ -118,8 +122,8 @@ elif optimizer_name == 'Adam':
     optimizer = optim.Adam(net.parameters(), lr=LR)
 
 # CosineAnnealingWarmRestarts
-# scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=EPOCH, eta_min=1e-6)
-scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer=optimizer, T_0=50, T_mult=2, eta_min=1e-6)
+scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=EPOCH, eta_min=1e-6)
+# scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer=optimizer, T_0=50, T_mult=2, eta_min=1e-6)
 
 # 用于记录准确率变化
 correct_on_train = []
@@ -130,6 +134,26 @@ time_cost = 0
 
 
 # 测试函数
+# def test(dataloader, flag='test_set'):
+#     correct = 0
+#     total = 0
+#     with torch.no_grad():
+#         net.eval()
+#         for x, y in dataloader:
+#             x, y = x.to(DEVICE), y.to(DEVICE)
+#             y_pre, _, _, _, _, _, _ = net(x, 'test')
+#             _, label_index = torch.max(y_pre.data, dim=-1)
+#             total += label_index.shape[0]
+#             correct += (label_index == y.long()).sum().item()
+#         if flag == 'test_set':
+#             correct_on_test.append(round((100 * correct / total), 2))
+#         elif flag == 'train_set':
+#             correct_on_train.append(round((100 * correct / total), 2))
+#         print(f'Accuracy on {flag}: %.2f %%' % (100 * correct / total))
+
+#         return round((100 * correct / total), 2)
+
+# this is for 32 6 7
 def test(dataloader, flag='test_set'):
     correct = 0
     total = 0
@@ -137,10 +161,14 @@ def test(dataloader, flag='test_set'):
         net.eval()
         for x, y in dataloader:
             x, y = x.to(DEVICE), y.to(DEVICE)
+            # obtain the final truth
+            y = y[:, -1]
             y_pre, _, _, _, _, _, _ = net(x, 'test')
-            _, label_index = torch.max(y_pre.data, dim=-1)
+            _, label_index = torch.max(y_pre.data, dim=1)
             total += label_index.shape[0]
-            correct += (label_index == y.long()).sum().item()
+            correct_per_row = torch.sum(label_index == y, dim=1)
+            correct += torch.sum(correct_per_row > 4).item()
+            # correct += (label_index == y.long()).sum().item()
         if flag == 'test_set':
             correct_on_test.append(round((100 * correct / total), 2))
         elif flag == 'train_set':
