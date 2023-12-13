@@ -19,7 +19,7 @@ person_list = ['person1', 'person2', 'person3', 'person4', 'person5', 'person6',
 activity_list = ['end_action', 'lchange', 'lturn', 'rchange', 'rturn']
 
 def grouping(face_dataset_original):
-    thred = 60
+    thred = 10
     face_total_files_count = 0
     road_total_files_count = 0
     face_filterd_files_count = 0

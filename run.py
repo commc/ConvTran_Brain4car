@@ -10,13 +10,14 @@ import torch.optim as optim
 from time import time
 from tqdm import tqdm
 import os
+import random
 
 from module.transformer import Transformer
 from module.transformer_20frame import Transformer_20frame
 from module.loss import Myloss
 from utils.random_seed import setup_seed
 from utils.visualization import result_visualization
-
+from utils.predictions import predictManeuver
 # from mytest.gather.main import draw
 
 setup_seed(30)  # 设置随机数种子
@@ -51,8 +52,8 @@ reslut_figure_path = 'result_figure'  # 结果图像保存路径
 # path = "/home/ubuntu/zsj/GTN-master/MTS_dataset/WalkvsRun/WalkvsRun.mat"
 
 """brain4car"""
-brain4car_train_path = "/home/ubuntu/zsj/GTN-master/dataset/annotations/trainset/train_data_846483_fold2.pik"
-brain4car_test_path = "/home/ubuntu/zsj/GTN-master/dataset/annotations/testset/test_data_846483_fold2.pik"
+brain4car_train_path = "/home/ubuntu/zsj/GTN-master/dataset/annotations/trainset/brain4cars_train_dataset_random_20frame.pik"
+brain4car_test_path = "/home/ubuntu/zsj/GTN-master/dataset/annotations/validset/brain4cars_valid_dataset_random_20frame.pik"
 file_name = 'brain4cars'
 train_dataset = Brain4carDataset(brain4car_train_path)
 test_dataset = Brain4carDataset(brain4car_test_path)
@@ -64,7 +65,7 @@ draw_key = 1  # 大于等于draw_key才会保存图像
 
 
 # 超参数设置
-EPOCH = 100
+EPOCH = 150
 BATCH_SIZE = 32
 LR = 1e-4
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")  # 选择设备 CPU or GPU
@@ -76,7 +77,7 @@ q = 8
 v = 8
 h = 8
 N = 8
-dropout = 0.3
+dropout = 0.2
 pe = True  # # 设置的是双塔中 score=pe score=channel默认没有pe
 mask = True  # 设置的是双塔中 score=input的mask score=channel默认没有mask
 # 优化器选择.
@@ -87,7 +88,7 @@ optimizer_name = 'Adagrad'
 # For brain4cars
 
 train_dataloader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-test_dataloader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+test_dataloader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
 """original data"""
 DATA_LEN = train_dataset.dataset_len  # 训练集样本数量
@@ -134,26 +135,6 @@ time_cost = 0
 
 
 # 测试函数
-# def test(dataloader, flag='test_set'):
-#     correct = 0
-#     total = 0
-#     with torch.no_grad():
-#         net.eval()
-#         for x, y in dataloader:
-#             x, y = x.to(DEVICE), y.to(DEVICE)
-#             y_pre, _, _, _, _, _, _ = net(x, 'test')
-#             _, label_index = torch.max(y_pre.data, dim=-1)
-#             total += label_index.shape[0]
-#             correct += (label_index == y.long()).sum().item()
-#         if flag == 'test_set':
-#             correct_on_test.append(round((100 * correct / total), 2))
-#         elif flag == 'train_set':
-#             correct_on_train.append(round((100 * correct / total), 2))
-#         print(f'Accuracy on {flag}: %.2f %%' % (100 * correct / total))
-
-#         return round((100 * correct / total), 2)
-
-# this is for 32 6 7
 def test(dataloader, flag='test_set'):
     correct = 0
     total = 0
@@ -161,14 +142,52 @@ def test(dataloader, flag='test_set'):
         net.eval()
         for x, y in dataloader:
             x, y = x.to(DEVICE), y.to(DEVICE)
+            y_pre, _, _, _, _, _, _ = net(x, 'test')
+            _, label_index = torch.max(y_pre.data, dim=-1)
+            total += label_index.shape[0]
+            correct += (label_index == y.long()).sum().item()
+        if flag == 'test_set':
+            correct_on_test.append(round((100 * correct / total), 2))
+        elif flag == 'train_set':
+            correct_on_train.append(round((100 * correct / total), 2))
+        print(f'Accuracy on {flag}: %.2f %%' % (100 * correct / total))
+
+        return round((100 * correct / total), 2)
+
+# this is for 32 6 7
+def test(dataloader, flag='test_set'):
+    correct = 0
+    total = 0
+    anticipation_time = 0 
+    prediction_list = []
+    anticipation_list = []
+    labels = []
+    with torch.no_grad():
+        net.eval()
+        for x, y in dataloader:
+            x, y = x.to(DEVICE), y.to(DEVICE)
             # obtain the final truth
-            y = y[:, -1]
             y_pre, _, _, _, _, _, _ = net(x, 'test')
             _, label_index = torch.max(y_pre.data, dim=1)
             total += label_index.shape[0]
+            """best prediction for anticipation_time"""
+            # y[y > 0] -= 1
+            # prediction_list_batch, anticipation_list_batch = predictManeuver(label_index)
+            # actual = y[:, -1].tolist()
+            # prediction_list += prediction_list_batch
+            # anticipation_list += anticipation_list_batch
+            # labels += actual
+            """best prediction for anticipation_time"""
             correct_per_row = torch.sum(label_index == y, dim=1)
-            correct += torch.sum(correct_per_row > 4).item()
+            correct += torch.sum(correct_per_row > 3).item()
+
             # correct += (label_index == y.long()).sum().item()
+        # if len(prediction_list) == len(labels):
+        #     pairs = zip(prediction_list, labels)
+        #     correct = sum(int(x) == int(y) for x, y in pairs)
+        # non_zero_time = [x for x in anticipation_list if x != 0]
+        # anticipation_time = sum(non_zero_time) / len(non_zero_time) if len(non_zero_time) > 0 else 0
+
         if flag == 'test_set':
             correct_on_test.append(round((100 * correct / total), 2))
         elif flag == 'train_set':
@@ -187,7 +206,6 @@ def train():
     for index in range(EPOCH):
         for i, (x, y) in enumerate(train_dataloader):
             optimizer.zero_grad()
-
             y_pre, _, _, _, _, _, _ = net(x.to(DEVICE), 'train')
 
             loss = loss_function(y_pre, y.to(DEVICE))

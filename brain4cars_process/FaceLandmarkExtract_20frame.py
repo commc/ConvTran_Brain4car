@@ -3,15 +3,16 @@ import sys
 import cv2
 import json
 import csv
-import logging
+import tsaug
 import random
 import numpy as np
 import pandas as pd
 import mediapipe as mp
 import matplotlib.pyplot as plt
 from scipy.io import loadmat
+from tsaug.visualization import plot
 
-json_file = './Brain4cars_datasetbyperson_alldata.json'
+json_file = '/home/ubuntu/zsj/GTN-master/brain4cars_process/Brain4cars_datasetbyperson_alldata.json'
 with open(json_file) as f:
     dataset_dict = json.load(f)
 f.close()
@@ -31,22 +32,6 @@ face_mesh = mp_face_mesh.FaceMesh(static_image_mode=False,
                            min_detection_confidence=0.1,
                            min_tracking_confidence=0.1)
 
-
-# 画图：
-# def cart2pol(x, y):
-#     """Convert from Cartesian to polar coordinates.
-#     """
-#     radius = np.hypot(x, y)
-#     theta = np.arctan2(y, x)
-#     return theta, radius
-
-# def pol2cart(theta, radius):
-#     """
-#     Convert from polar to Cartesian coordinates.
-#     """
-#     u = radius * np.cos(theta)
-#     v = radius * np.sin(theta)
-#     return u, v
 
 def compass(angles, radii, arrowprops=None):
     """
@@ -68,6 +53,68 @@ def compass(angles, radii, arrowprops=None):
     ax.set_ylim(0, np.max(radii))
 
     return fig, ax
+
+def aug_filter(Euler_features_aug, Brain4cars_Face_aug, Brain4cars_Speed_aug, zero_rows_index):
+    # 判断speed和face_features(hist部分)小于0的元素设置为0
+    Brain4cars_Speed_aug[Brain4cars_Speed_aug < 0] = 0
+    _, face_col = Brain4cars_Face_aug.shape
+    Brain4cars_Face_aug[:, :face_col - 1][Brain4cars_Face_aug[:, :face_col - 1] < 0] = 0
+    # 根据zero_row_index保证那些原本整行为0行在数据增强之后仍然为0
+    if zero_rows_index.shape[0] != 0:
+        for i in zero_rows_index:
+            Euler_features_aug[i, :] = 0
+            Brain4cars_Face_aug[i, :] = 0
+            Brain4cars_Speed_aug[i,:] = 0
+        return Euler_features_aug, Brain4cars_Face_aug, Brain4cars_Speed_aug
+    else:
+        return Euler_features_aug, Brain4cars_Face_aug, Brain4cars_Speed_aug
+
+def aggregate_features(aggregate_frame, Euler_features, Brain4cars_Face, Brain4cars_Speed):
+    # Euler angle 7 x 3
+    # Calculate the average of features from 20 frames. 获得每20帧数据取平均的部分
+    Euler_features_20frame = np.zeros((7, Euler_features.shape[1]))
+    # Face Features: 7 x 9
+    Brain4cars_Face_20frame = np.zeros((7, Brain4cars_Face.shape[1]))
+    # Speed: 7 x 3
+    # Brain4cars_Speed = np.concatenate((Mean_speed, Max_speed, Min_speed), axis=1)
+    Brain4cars_Speed_20frame = np.zeros((7,Brain4cars_Speed.shape[1]))
+
+
+    aggregated = int(150 / aggregate_frame)
+    for i in range(aggregated):
+        start_idx = i * aggregate_frame + 10
+        end_idx = start_idx + aggregate_frame
+        # 求平均时要忽略那些为0的行！
+        Euler_window_data = Euler_features[start_idx: end_idx]
+        Face_window_data = Brain4cars_Face[start_idx: end_idx]
+        Speed_window_data = Brain4cars_Speed[start_idx: end_idx]
+        Euler_all_row_zero = np.all(Euler_window_data == 0, axis=1)
+        Face_all_row_zero = np.all(Face_window_data == 0, axis=1)
+        Speed_all_row_zero = np.all(Speed_window_data == 0, axis=1)
+
+        # 这里为什么要写三个判断？按理来说欧拉角为0时整行都为0，但是有欧拉角不为0时，速度和脸部信息整行为0的情况
+        # 写三个if为了防止出现对nan求平均得到nan
+        if np.any(Euler_all_row_zero):
+            # 全为0，以下这样写为了debug好看信息
+            current_mean_euler_features = np.mean(Euler_window_data, axis=0).reshape((1, -1))
+            Euler_features_20frame[i, :] = current_mean_euler_features
+        else:
+            Euler_non_zero_rows = Euler_window_data[~Euler_all_row_zero]
+            Euler_features_20frame[i, :] = np.mean(Euler_non_zero_rows, axis=0).reshape((1, -1))
+        if np.any(Face_all_row_zero):
+            current_mean_face_features = np.mean(Face_window_data, axis=0).reshape((1, -1))
+            Brain4cars_Face_20frame[i, :] = current_mean_face_features
+        else:
+            Face_non_zero_rows = Face_window_data[~Face_all_row_zero]
+            Brain4cars_Face_20frame[i, :] = np.mean(Face_non_zero_rows, axis=0).reshape((1, -1))
+        if np.any(Speed_all_row_zero):
+            current_mean_speed_features = np.mean(Speed_window_data, axis=0).reshape((1, -1))
+            Brain4cars_Speed_20frame[i, :] = current_mean_speed_features
+        else:
+            Speed_non_zero_rows = Speed_window_data[~Speed_all_row_zero]
+            Brain4cars_Speed_20frame[i, :] = np.mean(Speed_non_zero_rows, axis=0).reshape((1, -1))
+    return Euler_features_20frame, Brain4cars_Face_20frame, Brain4cars_Speed_20frame
+
 
 def get_landmarks(video_path):
     """
@@ -220,6 +267,7 @@ def Brain4carFeatureExtract(action):
     if 'face_camera' not in action and 'video_' not in action:
         print("Path Error!, Please check action path!")
         sys.exit(0)
+    # action = "/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera/rchange/20141019_141831_1436_1586/video_20141019_141831_1436_1586.avi"
     action = action.replace("face_camera", "new_params")
     action = action.replace("video_", "new_param_")
     mat_file = action.split('.')[0] + '.mat'
@@ -228,7 +276,7 @@ def Brain4carFeatureExtract(action):
     except FileNotFoundError as e:
         print(e)
         sys.exit(0)
-    # process mat file
+    # process mat file 获取原始数据部分
     _, _, _, datakey = m
     Data = m[datakey]
     lane_info = Data['laneInfo'].item().item().split(',')
@@ -258,19 +306,7 @@ def Brain4carFeatureExtract(action):
         Speed[i, :] = speed_per_frame
         Euler[i, :] = Euler_per_frame
 
-    # set to be 151 rows
-    # if frame_data.shape[1] < 151:
-    #     landmarks_last_row = landmarks[-1, :]
-    #     Speed_last_row = np.zeros_like(Speed[-1, :])
-    #     Euler_last_row = np.zeros_like(Euler[-1: ])
-    #     landmarks = np.concatenate((landmarks, np.tile(landmarks_last_row, (151 - frame_data.shape[1], 1))))
-    #     Euler = np.concatenate((Euler, np.tile(Euler_last_row, (151 - frame_data.shape[1], 1))))
-    #     Speed = np.concatenate((Speed, np.tile(Speed_last_row, (151 - frame_data.shape[1], 1))))
-    # elif frame_data.shape[1] > 151:
-    #     landmarks = landmarks[:151, :]
-    #     Euler = Euler[:151, :]
-    #     Speed = Speed[:151, :]
-    # extract face features
+    # extract face features 获取特征部分
     hist_angle_values = [-np.pi, -0.5*np.pi, 0, 0.5*np.pi, np.pi]
     hist_distance_x = [-1e3, -2.0, 0, 2.0, 1e3]
     hist_distance_values = [-1e3, 2, 5, 8, 10, 1e3]
@@ -307,7 +343,7 @@ def Brain4carFeatureExtract(action):
     """Speed features 这里和论文中的不一样，这里的原则是每隔获取最大速度，而不是5s中共用一个最大速度"""
     num_intervals = int(Speed.shape[0] / 30)
      
-    # Speed: 151 rows -> 150 rows
+    # Speed: 151 rows -> 150 rows 将特征统一为150的时间长度
     Mean_speed = np.zeros_like(Speed)
     Max_speed = np.zeros_like(Speed)
     Min_speed = np.zeros_like(Speed)
@@ -383,7 +419,64 @@ def Brain4carFeatureExtract(action):
     # Lane: 150 x3
     Brain4cars_Lane = Lane_features_target
 
-    # Calculate the average of features from 20 frames.
+    """
+    Data augmentation!数据增强部分
+        利用tsaug进行数据增强；
+        因为部分特征不能被增强，所以这里进行数据集准备阶段的数据增强.
+        数据增强需要的数据形状是(channel, time-step)!
+    """
+    # 获取Euler_features行号为0的坐标，数据增强后这些行元素仍都置0
+    zero_rows_index= np.where(np.all(Euler_features == 0, axis=1))[0]
+
+    # AddNoise（可能造成hist<0需要处理）
+    Euler_features_AddNoise = tsaug.AddNoise(scale=0.06).augment(euler_angle_target.transpose((1, 0))).transpose((1,0))
+    Brain4cars_Face_AddNoise = tsaug.AddNoise(scale=0.06).augment(Brain4cars_Face.transpose((1, 0))).transpose((1,0))
+    Brain4cars_Speed_AddNoise = tsaug.AddNoise(scale=0.06).augment(Brain4cars_Speed.transpose((1, 0))).transpose((1,0))
+
+    # Convolve (可能造成hist<0需要处理)
+    Euler_features_Convolve = tsaug.Convolve(window="flattop", size=11).augment(euler_angle_target.transpose((1, 0))).transpose((1,0))
+    Brain4cars_Face_Convolve = tsaug.Convolve(window="flattop", size=11).augment(Brain4cars_Face.transpose((1, 0))).transpose((1,0))
+    Brain4cars_Speed_Convolve = tsaug.Convolve(window="flattop", size=11).augment(Brain4cars_Speed.transpose((1, 0))).transpose((1,0))
+
+    # Dropout
+    Euler_features_Dropout = tsaug.Dropout(p=0.1, size=(1,5), fill=float(0), per_channel=True).augment(euler_angle_target.transpose((1, 0))).transpose((1,0))
+    Brain4cars_Face_Dropout = tsaug.Dropout(p=0.1, size=(1,5), fill=float(0.1), per_channel=True).augment(Brain4cars_Face.transpose((1, 0))).transpose((1,0))
+    Brain4cars_Speed_Dropout = tsaug.Dropout(p=0.1, size=(1,5), fill=float(0.1), per_channel=True).augment(Brain4cars_Speed.transpose((1, 0))).transpose((1,0))
+
+    # Pool (可能造成hist<0需要处理)
+    Euler_features_Pool = tsaug.Pool(size=2).augment(euler_angle_target.transpose((1, 0))).transpose((1,0))
+    Brain4cars_Face_Pool = tsaug.Pool(size=2).augment(Brain4cars_Face.transpose((1, 0))).transpose((1,0))
+    Brain4cars_Speed_Pool = tsaug.Pool(size=2).augment(Brain4cars_Speed.transpose((1, 0))).transpose((1,0))
+
+    # Quantize 没太大效果
+    Euler_features_Quantize = tsaug.Quantize(n_levels=20).augment(euler_angle_target.transpose((1, 0))).transpose((1,0))
+    Brain4cars_Face_Quantize = tsaug.Quantize(n_levels=20).augment(Brain4cars_Face.transpose((1, 0))).transpose((1,0))
+    Brain4cars_Speed_Quantize = tsaug.Quantize(n_levels=20).augment(Brain4cars_Speed.transpose((1, 0))).transpose((1,0))
+
+    # TimeWarp
+    Euler_features_TimeWarp = tsaug.TimeWarp(n_speed_change=5, max_speed_ratio=3).augment(euler_angle_target.transpose((1, 0))).transpose((1,0))
+    Brain4cars_Face_TimeWarp = tsaug.TimeWarp(n_speed_change=5, max_speed_ratio=3).augment(Brain4cars_Face.transpose((1, 0))).transpose((1,0))
+    Brain4cars_Speed_TimeWarp = tsaug.TimeWarp(n_speed_change=5, max_speed_ratio=3).augment(Brain4cars_Speed.transpose((1, 0))).transpose((1,0))    
+    
+    # Combnine method
+    TimeWarp_Convlve = (tsaug.TimeWarp(n_speed_change=5, max_speed_ratio=3) + tsaug.Convolve(window="flattop", size=11))
+    Euler_features_Combine = TimeWarp_Convlve.augment(euler_angle_target.transpose((1, 0))).transpose((1,0))
+    Brain4cars_Face_Combine = TimeWarp_Convlve.augment(Brain4cars_Face.transpose((1, 0))).transpose((1,0))
+    Brain4cars_Speed_Combine = TimeWarp_Convlve.augment(Brain4cars_Speed.transpose((1, 0))).transpose((1,0))       
+
+    # 对增强后的数据进行处理，保证原来是0的地方还为0,同时如hist和spped等特征不能出现负数
+    Euler_features_AddNoise, Brain4cars_Face_AddNoise, Brain4cars_Speed_AddNoise = aug_filter(Euler_features_AddNoise, Brain4cars_Face_AddNoise, Brain4cars_Speed_AddNoise, zero_rows_index)
+    Euler_features_Convolve, Brain4cars_Face_Convolve, Brain4cars_Speed_Convolve = aug_filter(Euler_features_Convolve, Brain4cars_Face_Convolve, Brain4cars_Speed_Convolve, zero_rows_index)
+    Euler_features_Dropout, Brain4cars_Face_Dropout, Brain4cars_Speed_Dropout = aug_filter(Euler_features_Dropout, Brain4cars_Face_Dropout, Brain4cars_Speed_Dropout, zero_rows_index)
+    Euler_features_Pool, Brain4cars_Face_Pool, Brain4cars_Speed_Pool = aug_filter(Euler_features_Pool, Brain4cars_Face_Pool, Brain4cars_Speed_Pool, zero_rows_index)
+    Euler_features_Quantize, Brain4cars_Face_Quantize, Brain4cars_Speed_Quantize = aug_filter(Euler_features_Quantize, Brain4cars_Face_Quantize, Brain4cars_Speed_Quantize, zero_rows_index)
+    Euler_features_TimeWarp, Brain4cars_Face_TimeWarp, Brain4cars_Speed_TimeWarp = aug_filter(Euler_features_TimeWarp, Brain4cars_Face_TimeWarp, Brain4cars_Speed_TimeWarp, zero_rows_index)
+    Euler_features_Combine, Brain4cars_Face_Combine, Brain4cars_Speed_Combine = aug_filter(Euler_features_Combine, Brain4cars_Face_Combine, Brain4cars_Speed_Combine, zero_rows_index)
+
+
+    # TODO:完成aggregate_features函数编写
+    Euler_features_20frame, Brain4cars_Face_20frame, Brain4cars_Speed_20frame = aggregate_features(20, Euler_features, Brain4cars_Face, Brain4cars_Speed)
+
     # Euler angle 7 x 3
     Euler_features_20frame = np.zeros((7, Euler_features.shape[1]))
     # Face Features: 7 x 9
@@ -393,19 +486,46 @@ def Brain4carFeatureExtract(action):
     Brain4cars_Speed_20frame = np.zeros((7,Brain4cars_Speed.shape[1]))
     # Lane: 7 x 3
     Brain4cars_Lane_20frame = np.zeros((7, Brain4cars_Lane.shape[1]))
-    aggregrate_frame = 20
+    aggregate_frame = 20
     for i in range(7):
-        start_idx = i * aggregrate_frame
-        end_idx = (i + 1) * aggregrate_frame
-        current_mean_euler_features = np.mean(Euler_features[start_idx: end_idx + 1, :], axis=0).reshape((1, -1))
-        current_mean_face_features = np.mean(Brain4cars_Face[start_idx: end_idx + 1, :], axis=0).reshape((1, -1))
-        current_mean_speed_features = np.mean(Brain4cars_Speed[start_idx: end_idx + 1, :], axis=0).reshape((1, -1))
-        
-        
-        Euler_features_20frame[i, :] = current_mean_euler_features
-        Brain4cars_Face_20frame[i, :] = current_mean_face_features
-        Brain4cars_Speed_20frame[i, :] = current_mean_speed_features
+        start_idx = i * aggregate_frame + 10
+        end_idx = start_idx + aggregate_frame
+        # 求平均时要忽略那些为0的行！
+        Euler_window_data = Euler_features[start_idx: end_idx]
+        Face_window_data = Brain4cars_Face[start_idx: end_idx]
+        Speed_window_data = Brain4cars_Speed[start_idx: end_idx]
+        Euler_all_row_zero = np.all(Euler_window_data == 0, axis=1)
+        Face_all_row_zero = np.all(Face_window_data == 0, axis=1)
+        Speed_all_row_zero = np.all(Speed_window_data == 0, axis=1)
+
+        # 这里为什么要写三个判断？按理来说欧拉角为0时整行都为0，但是有欧拉角不为0时，速度和脸部信息整行为0的情况
+        # 写三个if为了防止出现对nan求平均得到nan
+        if np.any(Euler_all_row_zero):
+            # 全为0，以下这样写为了debug好看信息
+            current_mean_euler_features = np.mean(Euler_window_data, axis=0).reshape((1, -1))
+            current_mean_face_features = np.mean(Face_window_data, axis=0).reshape((1, -1))
+        else:
+            Euler_non_zero_rows = Euler_window_data[~Euler_all_row_zero]
+            Face_non_zero_rows = Face_window_data[~Face_all_row_zero]
+        if np.any(Face_all_row_zero):
+            Euler_features_20frame[i, :] = current_mean_euler_features
+            Brain4cars_Face_20frame[i, :] = current_mean_face_features
+        else:
+            Euler_features_20frame[i, :] = np.mean(Euler_non_zero_rows, axis=0).reshape((1, -1))
+            Brain4cars_Face_20frame[i, :] = np.mean(Face_non_zero_rows, axis=0).reshape((1, -1))
+        if np.any(Speed_all_row_zero):
+            current_mean_speed_features = np.mean(Speed_window_data, axis=0).reshape((1, -1))
+            Brain4cars_Speed_20frame[i, :] = current_mean_speed_features
+        else:
+            Speed_non_zero_rows = Speed_window_data[~Speed_all_row_zero]
+            Brain4cars_Speed_20frame[i, :] = np.mean(Speed_non_zero_rows, axis=0).reshape((1, -1))
+
+    # 数据增强
+
+
     # 单独处理lane信息
+    # Lane: 7 x 3
+    Brain4cars_Lane_20frame = np.zeros((7, Brain4cars_Lane.shape[1]))
     for i in range(7):
         if np.all(Euler_features_20frame[i, :] == 0):
             Brain4cars_Lane_20frame[i, :] = np.zeros((1, 3))
@@ -414,7 +534,7 @@ def Brain4carFeatureExtract(action):
     return Euler_features, Brain4cars_Face, Brain4cars_Speed, Brain4cars_Lane, Euler_features_20frame, Brain4cars_Face_20frame, Brain4cars_Speed_20frame, Brain4cars_Lane_20frame
 
 
-def TrainTestSet(dataset_dict, person_list, action_list):
+def TrainTestSet_byperson(dataset_dict, person_list, action_list):
     train_dataset = {'annotations': []}
     test_dataset = {'annotations': []}
     action_list = ['end_action', 'lchange', 'lturn', 'rchange', 'rturn']
@@ -452,23 +572,23 @@ def TrainTestSet(dataset_dict, person_list, action_list):
     f_test.close()
 
 
-def TrainTestSetRandom(dataset_dict, person_list, action_list):
+def TrainTestSetRandom(dataset_dict, person_list, action_list, label_type = 'one'):
     random_seed = 30
     random.seed(random_seed)
 
-    test_ratio = 0.15
-    valid_ratio = 0.15
+    test_ratio    = 0.15
+    valid_ratio   = 0.15
     train_dataset = {'annotations': []}
     valid_dataset = {'annotations': []}
-    test_dataset = {'annotations': []}
-    dataset_list = []
-    labels_list = []
-    train_list = []
-    train_labels = []
-    test_list = []
-    test_labels =[]
-    valid_list = []
-    valid_labels =[]
+    test_dataset  = {'annotations': []}
+    dataset_list  = []
+    labels_list   = []
+    train_list    = []
+    train_labels  = []
+    test_list     = []
+    test_labels   = []
+    valid_list    = []
+    valid_labels  = []
     for p_idx, person in enumerate(person_list):
         person_video_count = 0
         print("-"*15,"Start processing video data for {}.".format(person) + "-"*15)
@@ -482,11 +602,28 @@ def TrainTestSetRandom(dataset_dict, person_list, action_list):
             for video_file in actions:
                 person_video_count += 1
                 csv_list = video_file.split(os.sep)
-                csv_mark = csv_list[-1].replace('video_', 'allfeatures_').replace('.avi', '.csv')
+                csv_mark = csv_list[-1].replace('video_', '20frame_features_').replace('.avi', '.csv')
                 csv_list[-1] = csv_mark
                 All_features_csv_path = os.sep.join(csv_list)
                 dataset_list.append(All_features_csv_path)
-                labels_list.append(action_list.index(action))
+                if label_type == 'one':
+                    labels_list.append(action_list.index(action))
+                elif label_type == 'multi':
+                    labels = []
+                try:
+                    table = pd.read_csv(All_features_csv_path)
+                    # table_value: channelx150
+                    table_value = table.values
+                except Exception as e:
+                    raise Exception(f'Error loading csv from {All_features_csv_path}') from e
+                table_value = np.array(table_value)
+                for row in table_value:
+                    if np.all(row == 0):
+                        labels.append(0)
+                    else:
+                        labels.append(action_list.index(action)+1)
+                labels_list.append(labels)
+                    
     
     dataset_indices = list(range(len(dataset_list)))
     random.shuffle(dataset_indices)
@@ -516,13 +653,13 @@ def TrainTestSetRandom(dataset_dict, person_list, action_list):
     trainset_json = json.dumps(train_dataset, indent=1)
     testset_json = json.dumps(test_dataset, indent=1)
     validset_json = json.dumps(valid_dataset, indent=1)
-    with open('./brain4cars_train_dataset_random.json', 'w') as f_train:
+    with open('./brain4cars_train_dataset_random_20frame.json', 'w') as f_train:
         f_train.write(trainset_json)
     f_train.close()
-    with open('./brain4cars_test_dataset_random.json', 'w') as f_test:
+    with open('./brain4cars_test_dataset_random_20frame.json', 'w') as f_test:
         f_test.write(testset_json)
     f_test.close()
-    with open('./brain4cars_valid_dataset_random.json', 'w') as f_test:
+    with open('./brain4cars_valid_dataset_random_20frame.json', 'w') as f_test:
         f_test.write(validset_json)
     f_test.close()
 
@@ -584,9 +721,9 @@ def clear_csv(dir_path):
                 print("已删除文件：", os.path.join(root, file))
 if __name__ == "__main__":
     # clear_csv("/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera")
-    # main_loop(dataset_dict, person_list, action_list)
-    # TrainTestSet(dataset_dict, person_list, action_list)
-    TrainTestSetRandom(dataset_dict, person_list, action_list)
+    main_loop(dataset_dict, person_list, action_list)
+    # TrainTestSet_byperson(dataset_dict, person_list, action_list)
+    # TrainTestSetRandom(dataset_dict, person_list, action_list, label_type='multi')
 
 
 

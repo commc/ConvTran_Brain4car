@@ -6,6 +6,7 @@ import torch
 from torch.utils.data import Dataset
 
 
+
 class Brain4carDataset(Dataset):
     def __init__(self, file_path):
         super(Brain4carDataset, self).__init__()
@@ -63,6 +64,7 @@ class Brain4carDataset(Dataset):
             except Exception as e:
                 raise Exception(f'Error loading pickle from {file_path}') from e
             dataset = np.array(dataset_dict['features'])
+            # dataset = dataset
             dataset_shape = dataset.shape
             # eliminate redundancy axis
             if 1 in dataset_shape:
@@ -93,7 +95,6 @@ class Brain4carDataset(Dataset):
             
         else:
             raise FileNotFoundError
-
         return dataset, labels, input_len, input_channel, output_len, dataset_len, max_length_sample_inTest
             
 
