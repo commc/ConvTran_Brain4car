@@ -165,7 +165,20 @@ def get_landmarks(video_path):
 
     return x_list, y_list
 
-def nparray2csvfile(csv_path, np_array, header):
+def action2csvpath(action, prefix=None):
+    if prefix == None:
+        csv_list = action.split(os.sep)
+        csv_extension = csv_list[-1].replace('video_', '').replace('.avi', '.csv')
+        csv_list[-1] = csv_extension
+        csv_path = os.sep.join(csv_list)
+    else:
+        csv_list = action.split(os.sep)
+        csv_extension = csv_list[-1].replace('video_', prefix + '_').replace('.avi', '.csv')
+        csv_list[-1] = csv_extension
+        csv_path = os.sep.join(csv_list)
+    return csv_path
+
+def ndarray2csvfile(csv_path, np_array, header):
     np.savetxt(csv_path, np_array, delimiter=',', header=','.join(header), comments='', fmt='%.8f')
     print(".csv save at {} successfully!".format(csv_path))
 
@@ -195,7 +208,7 @@ def landmarks_writer(action, posex_list,posey_list):
         header.append(f'x_{index}'), header.append(f'y_{index}')
     pos_xy_array = np.column_stack((pos_x_array.flatten(), pos_y_array.flatten()))
     pos_xy_array = pos_xy_array.reshape((x_videolength, 478*2))
-    nparray2csvfile(csv_path, pos_xy_array, ','.join(header))
+    ndarray2csvfile(csv_path, pos_xy_array, ','.join(header))
     # np.savetxt(csv_path, pos_xy_array, delimiter=',', header=','.join(header), comments='', fmt='%.8f')
     # print(".csv save at {} successfully!".format(csv_path))
 
@@ -473,55 +486,16 @@ def Brain4carFeatureExtract(action):
     Euler_features_TimeWarp, Brain4cars_Face_TimeWarp, Brain4cars_Speed_TimeWarp = aug_filter(Euler_features_TimeWarp, Brain4cars_Face_TimeWarp, Brain4cars_Speed_TimeWarp, zero_rows_index)
     Euler_features_Combine, Brain4cars_Face_Combine, Brain4cars_Speed_Combine = aug_filter(Euler_features_Combine, Brain4cars_Face_Combine, Brain4cars_Speed_Combine, zero_rows_index)
 
-
-    # TODO:完成aggregate_features函数编写
+    # 获取以20帧为界限累积的特征
     Euler_features_20frame, Brain4cars_Face_20frame, Brain4cars_Speed_20frame = aggregate_features(20, Euler_features, Brain4cars_Face, Brain4cars_Speed)
-
-    # Euler angle 7 x 3
-    Euler_features_20frame = np.zeros((7, Euler_features.shape[1]))
-    # Face Features: 7 x 9
-    Brain4cars_Face_20frame = np.zeros((7, Brain4cars_Face.shape[1]))
-    # Speed: 7 x 3
-    # Brain4cars_Speed = np.concatenate((Mean_speed, Max_speed, Min_speed), axis=1)
-    Brain4cars_Speed_20frame = np.zeros((7,Brain4cars_Speed.shape[1]))
-    # Lane: 7 x 3
-    Brain4cars_Lane_20frame = np.zeros((7, Brain4cars_Lane.shape[1]))
-    aggregate_frame = 20
-    for i in range(7):
-        start_idx = i * aggregate_frame + 10
-        end_idx = start_idx + aggregate_frame
-        # 求平均时要忽略那些为0的行！
-        Euler_window_data = Euler_features[start_idx: end_idx]
-        Face_window_data = Brain4cars_Face[start_idx: end_idx]
-        Speed_window_data = Brain4cars_Speed[start_idx: end_idx]
-        Euler_all_row_zero = np.all(Euler_window_data == 0, axis=1)
-        Face_all_row_zero = np.all(Face_window_data == 0, axis=1)
-        Speed_all_row_zero = np.all(Speed_window_data == 0, axis=1)
-
-        # 这里为什么要写三个判断？按理来说欧拉角为0时整行都为0，但是有欧拉角不为0时，速度和脸部信息整行为0的情况
-        # 写三个if为了防止出现对nan求平均得到nan
-        if np.any(Euler_all_row_zero):
-            # 全为0，以下这样写为了debug好看信息
-            current_mean_euler_features = np.mean(Euler_window_data, axis=0).reshape((1, -1))
-            current_mean_face_features = np.mean(Face_window_data, axis=0).reshape((1, -1))
-        else:
-            Euler_non_zero_rows = Euler_window_data[~Euler_all_row_zero]
-            Face_non_zero_rows = Face_window_data[~Face_all_row_zero]
-        if np.any(Face_all_row_zero):
-            Euler_features_20frame[i, :] = current_mean_euler_features
-            Brain4cars_Face_20frame[i, :] = current_mean_face_features
-        else:
-            Euler_features_20frame[i, :] = np.mean(Euler_non_zero_rows, axis=0).reshape((1, -1))
-            Brain4cars_Face_20frame[i, :] = np.mean(Face_non_zero_rows, axis=0).reshape((1, -1))
-        if np.any(Speed_all_row_zero):
-            current_mean_speed_features = np.mean(Speed_window_data, axis=0).reshape((1, -1))
-            Brain4cars_Speed_20frame[i, :] = current_mean_speed_features
-        else:
-            Speed_non_zero_rows = Speed_window_data[~Speed_all_row_zero]
-            Brain4cars_Speed_20frame[i, :] = np.mean(Speed_non_zero_rows, axis=0).reshape((1, -1))
-
     # 数据增强
-
+    Euler_features_20frame_AddNoise, Brain4cars_Face_20frame_AddNoise, Brain4cars_Speed_20frame_AddNoise = aggregate_features(20, Euler_features_AddNoise, Brain4cars_Face_AddNoise, Brain4cars_Speed_AddNoise)
+    Euler_features_20frame_Convolve, Brain4cars_Face_20frame_Convolve, Brain4cars_Speed_20frame_Convolve = aggregate_features(20, Euler_features_Convolve, Brain4cars_Face_Convolve, Brain4cars_Speed_Convolve)
+    Euler_features_20frame_Dropout, Brain4cars_Face_20frame_Dropout, Brain4cars_Speed_20frame_Dropout = aggregate_features(20, Euler_features_Dropout, Brain4cars_Face_Dropout, Brain4cars_Speed_Dropout)
+    Euler_features_20frame_Pool, Brain4cars_Face_20frame_Pool, Brain4cars_Speed_20frame_Pool = aggregate_features(20, Euler_features_Pool, Brain4cars_Face_Pool, Brain4cars_Speed_Pool)
+    Euler_features_20frame_Quantize, Brain4cars_Face_20frame_Quantize, Brain4cars_Speed_20frame_Quantize = aggregate_features(20, Euler_features_Quantize, Brain4cars_Face_Quantize, Brain4cars_Speed_Quantize)
+    Euler_features_20frame_TimeWarp, Brain4cars_Face_20frame_TimeWarp, Brain4cars_Speed_20frame_TimeWarp = aggregate_features(20, Euler_features_TimeWarp, Brain4cars_Face_TimeWarp, Brain4cars_Speed_TimeWarp)
+    Euler_features_20frame_Combine, Brain4cars_Face_20frame_Combine, Brain4cars_Speed_20frame_Combine = aggregate_features(20, Euler_features_Combine, Brain4cars_Face_Combine, Brain4cars_Speed_Combine)
 
     # 单独处理lane信息
     # Lane: 7 x 3
@@ -531,8 +505,18 @@ def Brain4carFeatureExtract(action):
             Brain4cars_Lane_20frame[i, :] = np.zeros((1, 3))
         else:
             Brain4cars_Lane_20frame[i, :] = Lane_features[0, :]
-    return Euler_features, Brain4cars_Face, Brain4cars_Speed, Brain4cars_Lane, Euler_features_20frame, Brain4cars_Face_20frame, Brain4cars_Speed_20frame, Brain4cars_Lane_20frame
-
+    return Brain4cars_Lane, Brain4cars_Lane_20frame, \
+           Euler_features, Brain4cars_Face, Brain4cars_Speed, \
+           Euler_features_20frame, Brain4cars_Face_20frame, Brain4cars_Speed_20frame, \
+           Euler_features_20frame_AddNoise, Brain4cars_Face_20frame_AddNoise, Brain4cars_Speed_20frame_AddNoise, \
+           Euler_features_20frame_Convolve, Brain4cars_Face_20frame_Convolve, Brain4cars_Speed_20frame_Convolve, \
+           Euler_features_20frame_Dropout, Brain4cars_Face_20frame_Dropout, Brain4cars_Speed_20frame_Dropout, \
+           Euler_features_20frame_Pool, Brain4cars_Face_20frame_Pool, Brain4cars_Speed_20frame_Pool, \
+           Euler_features_20frame_Quantize, Brain4cars_Face_20frame_Quantize, Brain4cars_Speed_20frame_Quantize, \
+           Euler_features_20frame_TimeWarp, Brain4cars_Face_20frame_TimeWarp, Brain4cars_Speed_20frame_TimeWarp, \
+           Euler_features_20frame_Combine, Brain4cars_Face_20frame_Combine, Brain4cars_Speed_20frame_Combine
+           
+                                 
 
 def TrainTestSet_byperson(dataset_dict, person_list, action_list):
     train_dataset = {'annotations': []}
@@ -559,9 +543,9 @@ def TrainTestSet_byperson(dataset_dict, person_list, action_list):
                 if person in test_person:
                     test_dataset['annotations'].append({'filename': All_features_csv_path, 'label': action_list.index(action)})
                 else:
-                    train_dataset['annotations'].append({'filename': All_features_csv_path, 'label': action_list.index(action)})
-         
+                    train_dataset['annotations'].append({'filename': All_features_csv_path, 'label': action_list.index(action)})        
         print("person{}的视频数量为：{}".format(p_idx, person_video_count))
+
     trainset_json = json.dumps(train_dataset, indent=1)
     testset_json = json.dumps(test_dataset, indent=1)
     with open('./brain4cars_train_dataset.json', 'w') as f_train:
@@ -575,8 +559,7 @@ def TrainTestSet_byperson(dataset_dict, person_list, action_list):
 def TrainTestSetRandom(dataset_dict, person_list, action_list, label_type = 'one'):
     random_seed = 30
     random.seed(random_seed)
-
-    test_ratio    = 0.15
+    test_ratio    = 0
     valid_ratio   = 0.15
     train_dataset = {'annotations': []}
     valid_dataset = {'annotations': []}
@@ -599,32 +582,48 @@ def TrainTestSetRandom(dataset_dict, person_list, action_list, label_type = 'one
             #获取每个行为的列表
             actions = person_face_dataset[action]
             #遍历每个列表的视频地址
-            for video_file in actions:
+            for video_path in actions:
                 person_video_count += 1
-                csv_list = video_file.split(os.sep)
-                csv_mark = csv_list[-1].replace('video_', '20frame_features_').replace('.avi', '.csv')
-                csv_list[-1] = csv_mark
-                All_features_csv_path = os.sep.join(csv_list)
-                dataset_list.append(All_features_csv_path)
+                allfeatrues_csv_path = action2csvpath(video_path, prefix='allfeatures')
                 if label_type == 'one':
+                    dataset_list.append(allfeatrues_csv_path)
                     labels_list.append(action_list.index(action))
+
                 elif label_type == 'multi':
+                    Frame_csv_path = action2csvpath(video_path, prefix='20frame_features')
+                    Frame_csv_path_AddNoise = action2csvpath(video_path, prefix='20frame_features_AddNoise')
+                    Frame_csv_path_Convolve = action2csvpath(video_path, prefix='20frame_features_Convolve')
+                    Frame_csv_path_Dropout = action2csvpath(video_path, prefix='20frame_features_Dropout')
+                    Frame_csv_path_Pool = action2csvpath(video_path, prefix='20frame_features_Pool')
+                    Frame_csv_path_Quantize = action2csvpath(video_path, prefix='20frame_features_Quantize')
+                    Frame_csv_path_TimeWarp = action2csvpath(video_path, prefix='20frame_features_TimeWarp')
+                    Frame_csv_path_Combine = action2csvpath(video_path, prefix='20frame_features_Combine')
+                
+                    # dataset_list.append([Frame_csv_path, 
+                    #                      Frame_csv_path_AddNoise, 
+                    #                      Frame_csv_path_Convolve, 
+                    #                      Frame_csv_path_Dropout, 
+                    #                      Frame_csv_path_Pool,
+                    #                      Frame_csv_path_Quantize, 
+                    #                      Frame_csv_path_TimeWarp, 
+                    #                      Frame_csv_path_Combine])
+                    dataset_list.append([Frame_csv_path
+                                        ])
                     labels = []
-                try:
-                    table = pd.read_csv(All_features_csv_path)
-                    # table_value: channelx150
-                    table_value = table.values
-                except Exception as e:
-                    raise Exception(f'Error loading csv from {All_features_csv_path}') from e
-                table_value = np.array(table_value)
-                for row in table_value:
-                    if np.all(row == 0):
-                        labels.append(0)
-                    else:
-                        labels.append(action_list.index(action)+1)
-                labels_list.append(labels)
+                    try:
+                        table = pd.read_csv(Frame_csv_path)
+                        # table_value: channelx150
+                        table_value = table.values
+                    except Exception as e:
+                        raise Exception(f'Error loading csv from {Frame_csv_path}') from e
+                    table_value = np.array(table_value)
+                    for row in table_value:
+                        if np.all(row == 0):
+                            labels.append(0)
+                        else:
+                            labels.append(action_list.index(action)+1)
+                    labels_list.append(labels)
                     
-    
     dataset_indices = list(range(len(dataset_list)))
     random.shuffle(dataset_indices)
     
@@ -653,13 +652,13 @@ def TrainTestSetRandom(dataset_dict, person_list, action_list, label_type = 'one
     trainset_json = json.dumps(train_dataset, indent=1)
     testset_json = json.dumps(test_dataset, indent=1)
     validset_json = json.dumps(valid_dataset, indent=1)
-    with open('./brain4cars_train_dataset_random_20frame.json', 'w') as f_train:
+    with open('./brain4cars_train_dataset_random.json', 'w') as f_train:
         f_train.write(trainset_json)
     f_train.close()
-    with open('./brain4cars_test_dataset_random_20frame.json', 'w') as f_test:
+    with open('./brain4cars_test_dataset_random.json', 'w') as f_test:
         f_test.write(testset_json)
     f_test.close()
-    with open('./brain4cars_valid_dataset_random_20frame.json', 'w') as f_test:
+    with open('./brain4cars_valid_dataset_random.json', 'w') as f_test:
         f_test.write(validset_json)
     f_test.close()
 
@@ -685,28 +684,62 @@ def main_loop(dataset_dict, person_list, action_list):
                 # 提取瞳孔特征，shape: 150x9
                 # mediapipe_features =  EyeFeaturesExtract(action)
                 # 提取mat file特征 150x9, 150x3, 150x3
-                Euler_features, brain4cars_face_features, brain4cars_speed_features, brain4cars_lane_features, \
-                Euler_features_20frame, Brain4cars_Face_20frame, Brain4cars_Speed_20frame, Brain4cars_Lane_20frame = Brain4carFeatureExtract(action)
-                All_features = np.concatenate((Euler_features, brain4cars_face_features,
-                                                brain4cars_lane_features, brain4cars_speed_features), axis=1)
-                All_features_20frame = np.concatenate((Euler_features_20frame,
-                                               Brain4cars_Face_20frame, Brain4cars_Lane_20frame, Brain4cars_Speed_20frame), axis=1)
+                brain4cars_lane_features, Brain4cars_Lane_20frame, \
+                Euler_features, brain4cars_face_features, brain4cars_speed_features, \
+                Euler_features_20frame, Brain4cars_Face_20frame, Brain4cars_Speed_20frame, \
+                Euler_features_20frame_AddNoise, Brain4cars_Face_20frame_AddNoise, Brain4cars_Speed_20frame_AddNoise, \
+                Euler_features_20frame_Convolve, Brain4cars_Face_20frame_Convolve, Brain4cars_Speed_20frame_Convolve, \
+                Euler_features_20frame_Dropout, Brain4cars_Face_20frame_Dropout, Brain4cars_Speed_20frame_Dropout, \
+                Euler_features_20frame_Pool, Brain4cars_Face_20frame_Pool, Brain4cars_Speed_20frame_Pool, \
+                Euler_features_20frame_Quantize, Brain4cars_Face_20frame_Quantize, Brain4cars_Speed_20frame_Quantize, \
+                Euler_features_20frame_TimeWarp, Brain4cars_Face_20frame_TimeWarp, Brain4cars_Speed_20frame_TimeWarp, \
+                Euler_features_20frame_Combine, Brain4cars_Face_20frame_Combine, Brain4cars_Speed_20frame_Combine = Brain4carFeatureExtract(action)
+                
+                # Euler_features, brain4cars_face_features, brain4cars_speed_features, brain4cars_lane_features, \
+                # Euler_features_20frame, Brain4cars_Face_20frame, Brain4cars_Speed_20frame, Brain4cars_Lane_20frame = Brain4carFeatureExtract(action)
+                All_features                  = np.concatenate((Euler_features, brain4cars_face_features, brain4cars_lane_features, brain4cars_speed_features), axis=1)
+                All_features_20frame          = np.concatenate((Euler_features_20frame, Brain4cars_Face_20frame, Brain4cars_Lane_20frame, Brain4cars_Speed_20frame), axis=1)
+                All_features_20frame_AddNoise = np.concatenate((Euler_features_20frame_AddNoise, Brain4cars_Face_20frame_AddNoise, Brain4cars_Lane_20frame, Brain4cars_Speed_20frame_AddNoise), axis=1)
+                All_features_20frame_Convolve = np.concatenate((Euler_features_20frame_Convolve, Brain4cars_Face_20frame_Convolve, Brain4cars_Lane_20frame, Brain4cars_Speed_20frame_Convolve), axis=1)
+                All_features_20frame_Dropout  = np.concatenate((Euler_features_20frame_Dropout, Brain4cars_Face_20frame_Dropout, Brain4cars_Lane_20frame, Brain4cars_Speed_20frame_Dropout), axis=1)
+                All_features_20frame_Pool     = np.concatenate((Euler_features_20frame_Pool, Brain4cars_Face_20frame_Pool, Brain4cars_Lane_20frame, Brain4cars_Speed_20frame_Pool), axis=1)
+                All_features_20frame_Quantize = np.concatenate((Euler_features_20frame_Quantize, Brain4cars_Face_20frame_Quantize, Brain4cars_Lane_20frame, Brain4cars_Speed_20frame_Quantize), axis=1)
+                All_features_20frame_TimeWarp = np.concatenate((Euler_features_20frame_TimeWarp, Brain4cars_Face_20frame_TimeWarp, Brain4cars_Lane_20frame, Brain4cars_Speed_20frame_TimeWarp), axis=1)
+                All_features_20frame_Combine  = np.concatenate((Euler_features_20frame_Combine, Brain4cars_Face_20frame_Combine, Brain4cars_Lane_20frame, Brain4cars_Speed_20frame_Combine), axis=1)
+
                 All_features_header =['yaw', 'pitch', 'row'] +  [f'face_angle_hist_{i}' for i in range(4)] + [f'face_move_in_x_hist_{i}' for i in range(4)] \
                                     + ["face_mean_move"] + ['left_action', 'right_action', 'intersection'] + ['mean_speed'] 
                 
                 All_features_header_20frame = ['yaw', 'pitch', 'row'] + [f'face_angle_hist_{i}' for i in range(4)] + [f'face_move_in_x_hist_{i}' for i in range(4)] \
                                     + ["face_mean_move_x"] + ['left_action', 'right_action', 'intersection'] + ['mean_speed'] 
 
-                csv_list = action.split(os.sep)
-                csv_list_20frame = action.split(os.sep)
-                csv_mark = csv_list[-1].replace('video_', 'allfeatures_').replace('.avi', '.csv')
-                csv_mark_20frame = csv_list[-1].replace('video_', '20frame_features_').replace('.avi', '.csv')
-                csv_list[-1] = csv_mark
-                csv_list_20frame[-1] = csv_mark_20frame
-                All_features_csv_path = os.sep.join(csv_list)
-                Frame_csv_path = os.sep.join(csv_list_20frame)
-                nparray2csvfile(All_features_csv_path, All_features, All_features_header)
-                nparray2csvfile(Frame_csv_path, All_features_20frame, All_features_header_20frame)
+                # csv_list = action.split(os.sep)
+                # csv_list_20frame = action.split(os.sep)
+                # csv_mark = csv_list[-1].replace('video_', 'allfeatures_').replace('.avi', '.csv')
+                # csv_mark_20frame = csv_list[-1].replace('video_', '20frame_features_').replace('.avi', '.csv')
+                # csv_list[-1] = csv_mark
+                # csv_list_20frame[-1] = csv_mark_20frame
+                # All_features_csv_path = os.sep.join(csv_list)
+                # Frame_csv_path = os.sep.join(csv_list_20frame)
+
+                All_features_csv_path =  action2csvpath(action, prefix='allfeatures')
+                Frame_csv_path = action2csvpath(action, prefix='20frame_features')
+                Frame_csv_path_AddNoise = action2csvpath(action, prefix='20frame_features_AddNoise')
+                Frame_csv_path_Convolve = action2csvpath(action, prefix='20frame_features_Convolve')
+                Frame_csv_path_Dropout = action2csvpath(action, prefix='20frame_features_Dropout')
+                Frame_csv_path_Pool = action2csvpath(action, prefix='20frame_features_Pool')
+                Frame_csv_path_Quantize = action2csvpath(action, prefix='20frame_features_Quantize')
+                Frame_csv_path_TimeWarp = action2csvpath(action, prefix='20frame_features_TimeWarp')
+                Frame_csv_path_Combine = action2csvpath(action, prefix='20frame_features_Combine')
+                ndarray2csvfile(All_features_csv_path, All_features, All_features_header)
+                ndarray2csvfile(Frame_csv_path, All_features_20frame, All_features_header_20frame)
+                ndarray2csvfile(Frame_csv_path_AddNoise, All_features_20frame_AddNoise, All_features_header_20frame)
+                ndarray2csvfile(Frame_csv_path_Convolve, All_features_20frame_Convolve, All_features_header_20frame)
+                ndarray2csvfile(Frame_csv_path_Dropout, All_features_20frame_Dropout, All_features_header_20frame)
+                ndarray2csvfile(Frame_csv_path_Pool, All_features_20frame_Pool, All_features_header_20frame)
+                ndarray2csvfile(Frame_csv_path_Quantize, All_features_20frame_Quantize, All_features_header_20frame)
+                ndarray2csvfile(Frame_csv_path_TimeWarp, All_features_20frame_TimeWarp, All_features_header_20frame)
+                ndarray2csvfile(Frame_csv_path_Combine, All_features_20frame_Combine, All_features_header_20frame)
                 person_video_count += 1
                 processed_video += 1
                 print("The number of videos processed is {}.\n".format(processed_video))
@@ -721,9 +754,9 @@ def clear_csv(dir_path):
                 print("已删除文件：", os.path.join(root, file))
 if __name__ == "__main__":
     # clear_csv("/home/ubuntu/zsj/brain4cars_video/brain4cars_data/face_camera")
-    main_loop(dataset_dict, person_list, action_list)
+    # main_loop(dataset_dict, person_list, action_list)
     # TrainTestSet_byperson(dataset_dict, person_list, action_list)
-    # TrainTestSetRandom(dataset_dict, person_list, action_list, label_type='multi')
+    TrainTestSetRandom(dataset_dict, person_list, action_list, label_type='one')
 
 
 

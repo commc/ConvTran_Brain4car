@@ -46,7 +46,7 @@ class Brain4carDataset(Dataset):
                     raise Exception(f'Error loading csv from {csv_file}') from e
                 dataset.append(table_value)
             
-            dataset = np.array(dataset)
+            dataset = np.array(dataset)[:,:,:15]
             labels = np.array(labels)
             input_len = dataset.shape[1]
             input_channel = dataset.shape[-1]

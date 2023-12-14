@@ -31,11 +31,11 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # Wafer length=803  input=997 channel=4
 
 # 选择要跑的模型
-save_model_path = '/home/ubuntu/zsj/GTN-master/saved_model/brain4cars 76.54 batch=64.pkl'
+save_model_path = '/home/ubuntu/zsj/GTN-master/saved_model/brain4cars 83.95 batch=32.pkl'
 file_name = save_model_path.split('/')[-1].split(' ')[0]
 # path = f'E:\PyCharmWorkSpace\\dataset\\MTS_dataset\\{file_name}\\{file_name}.mat'  # 拼装数据集路径
 # path = f"./MTS_dataset/{file_name}/{file_name}.mat"
-path = '/home/ubuntu/zsj/GTN-master/dataset/annotations/trainset/brain4cars_train_dataset_random.json'
+path = '/home/ubuntu/zsj/GTN-master/dataset/annotations/testset/brain4cars_test_dataset_random_20frame_aug.pik'
 # 绘制HeatMap的命名准备工作
 # ACCURACY = save_model_path.split('/')[-1].split(' ')[1]  # 使用的模型的准确率
 # BATCH_SIZE = int(save_model_path[save_model_path.find('=')+1:save_model_path.rfind('.')])  # 使用的模型的batch_size
