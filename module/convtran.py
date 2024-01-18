@@ -310,7 +310,7 @@ class ConvTran(nn.Module):
             nn.Linear(dim_ff, emb_size),
             nn.Dropout(d_dropout))
 
-        # self.gap = nn.AdaptiveAvgPool1d(1)
+        self.gap = nn.AdaptiveAvgPool1d(self._pre_step)
         # self.flatten = nn.Flatten()
         # self.out = nn.Linear(emb_size, seq_len * num_classes)
         self.out = nn.Linear(emb_size, num_classes)
@@ -327,10 +327,13 @@ class ConvTran(nn.Module):
         att = self.LayerNorm(att)
         out = att + self.FeedForward(att)
         out = self.LayerNorm2(out)
+        out = out.permute(0, 2, 1)
+        out = self.gap(out)
+        out = out.permute(0, 2, 1)
         out = self.out(out)
         out = out.permute(0, 2, 1)
         # out = self.gap(out)
         # out = self.flatten(out)
         # out = self.out(out)
-        out = out.view(-1, self._num_classes, self._feq, self._pre_step).mean(dim=2)
+        # out = out.view(-1, self._num_classes, self._feq, self._pre_step).mean(dim=2)
         return out

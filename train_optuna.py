@@ -50,8 +50,8 @@ def parse_args():
     parser.add_argument('--optimizer', type=str, default="Adagrad", help="optimizer for back propogation")
     parser.add_argument('--device', type=str, default="0", help="cuda device, i.e. 0,1,2,3 or cpu")
     parser.add_argument('--model', type=str, default='ConvTran', help="model name")
-    parser.add_argument('--d-model', type=int, default=512, help="embedding dimension")
-    parser.add_argument('--d-hidden', type=int, default=1024, help="fully connected layer hidden dimension")
+    parser.add_argument('--d-model', type=int, default=32, help="embedding dimension")
+    parser.add_argument('--d-hidden', type=int, default=256, help="fully connected layer hidden dimension")
     parser.add_argument('--q', type=int, default=8, help="querry ")
     parser.add_argument('--v', type=int, default=8, help="value")
     parser.add_argument('--h', type=int, default=8, help="n heads")
@@ -154,7 +154,7 @@ def train(opt, DEVICE):
         net = Transformer_multilabel(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
                     q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
     elif opt.model == 'ConvTran':
-        net = ConvTran(d_model=d_model, d_input=d_input, d_channel=d_channel, d_hidden=256,  heads=h, d_dropout=dropout, num_classes=d_output).to(DEVICE)
+        net = ConvTran(d_model=d_model, d_input=d_input, d_channel=d_channel, d_hidden=d_hidden,  heads=h, d_dropout=dropout, num_classes=d_output).to(DEVICE)
     
     # logger.info("Total number of parameters: {}".format(count_parameters(net)))
     loss_function = Myloss()

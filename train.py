@@ -22,6 +22,7 @@ from module.transformer import Transformer
 from module.transformer_multilabel import Transformer_multilabel
 from module.convtran import ConvTran
 from module.loss import Myloss
+from module.optimizer import RAdam
 from utils.random_seed import setup_seed
 from utils.visualization import result_visualization, plot_confusion_matrix, plot_result
 from utils.predictions import predictManeuver, confusionMat
@@ -117,10 +118,7 @@ def train(opt, DEVICE):
     logger.info(f'Number of classes: {d_output}')
     action_name = ['end_action', 'lchange', 'lturn', 'rchange', 'rturn']
     # Model
-    if opt.model == 'GTN':
-        net = Transformer_multilabel(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
-                    q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
-    elif opt.model == 'ConvTran':
+    if opt.model == 'ConvTran':
         net = ConvTran(d_model=d_model, d_input=d_input, d_channel=d_channel, d_hidden=d_hidden,  heads=h, d_dropout=dropout, num_classes=d_output).to(DEVICE)
     logger.info("\nNetwork: {}".format(net))
     logger.info("Total number of parameters: {}".format(count_parameters(net)))
@@ -129,6 +127,8 @@ def train(opt, DEVICE):
         optimizer = optim.Adagrad(net.parameters(), lr=LR)
     elif optimizer_name == 'Adam':
         optimizer = optim.Adam(net.parameters(), lr=LR)
+    elif optimizer_name == 'RAdam':
+        optimizer = RAdam(net.parameters(), lr=LR)
 
     # 用于记录准确率变化
     correct_on_train = []   
@@ -259,9 +259,9 @@ if __name__ == '__main__':
     parser.add_argument('--train_path', type=str, default="./brain4cars_pipeline/temp_data/folder5/brain4cars_train_dataset_mediapipe_random4.json", help="train dataset path")
     parser.add_argument('--test_path', type=str, default="./brain4cars_pipeline/temp_data/folder5/brain4cars_valid_dataset_mediapipe_random4.json", help="train dataset path")
     parser.add_argument('--epochs', type=int, default=150)
-    parser.add_argument('--batch-size', type=int, default=64, help="total batch size for GPUs")
-    parser.add_argument('--lr', type=float, default=0.0027205809988263946, help="learning rate 0.001")
-    parser.add_argument('--optimizer', type=str, default="Adagrad", help="optimizer for back propogation")
+    parser.add_argument('--batch-size', type=int, default=16, help="total batch size for GPUs")
+    parser.add_argument('--lr', type=float, default=0.0036740528412150092, help="learning rate 0.001")
+    parser.add_argument('--optimizer', type=str, default="RAdam", help="Adagrad, Adam, RAdam")
     parser.add_argument('--device', type=str, default="0", help="cuda device, i.e. 0,1,2,3 or cpu")
     parser.add_argument('--model', type=str, default='ConvTran', help="model name")
     parser.add_argument('--d-model', type=int, default=32, help="embedding dimension")
@@ -270,7 +270,7 @@ if __name__ == '__main__':
     parser.add_argument('--v', type=int, default=8, help="value")
     parser.add_argument('--h', type=int, default=8, help="n heads")
     parser.add_argument('--N', type=int, default=4, help="n encoders")
-    parser.add_argument('--dropout', type=float, default=0.005, help="0.01")
+    parser.add_argument('--dropout', type=float, default=0.008, help="0.01")
     parser.add_argument('--pe', type=bool, default=True, help=" positional embefding")
     parser.add_argument('--mask', type=bool, default=True, help="mask for step encoder")
     parser.add_argument('--reslut_figure_path', type=str, default="result_figure", help="path for saving figures")
@@ -280,7 +280,7 @@ if __name__ == '__main__':
     parser.add_argument('--kfolder_filename', type=str, default="brain4cars_train_dataset_mediapipe_random5.pik")
     parser.add_argument('--test-interval', type=int, default=1, help="after test interval epochs training, test")
     parser.add_argument('--draw-key', type=int, default=1, help="1")
-    parser.add_argument('--random-seed', type=int, default=157)
+    parser.add_argument('--random-seed', type=int, default=494)
     
     opt = parser.parse_args()
     set_logging()
