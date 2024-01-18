@@ -2,9 +2,8 @@
 *.pkl
 *.png
 *.jpg
-/runs/
 /result_figure/*
-/result_figure_optuna/
+/result_figure_optuna/`
 /dataset/annotations/*
 /brain4cars_pipeline/temp_data/*
 /MTS_dataset/
