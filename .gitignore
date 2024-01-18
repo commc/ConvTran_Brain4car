@@ -2,6 +2,7 @@
 *.pkl
 *.png
 *.jpg
+*.db
 result_figure/*
 result_figure_optuna/*
 dataset/annotations/*
