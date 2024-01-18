@@ -3,10 +3,10 @@
 *.png
 *.jpg
 result_figure/*
-result_figure_optuna/`
+result_figure_optuna/*
 dataset/annotations/*
 brain4cars_pipeline/temp_data/*
 MTS_dataset/*
-heatmap_figure_in_test/
+heatmap_figure_in_test/*
 runs/*
 gather_figure/*
