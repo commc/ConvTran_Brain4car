@@ -480,9 +480,9 @@ def main_loop(dataset_dict, person_list, action_list):
 
 
 if __name__ == "__main__":
-    # main_loop(dataset_dict, person_list, action_list)
+    main_loop(dataset_dict, person_list, action_list)
     # TrainTestSet(dataset_dict, person_list, action_list)
-    TrainTestSetRandom(dataset_dict, person_list, action_list)
+    # TrainTestSetRandom(dataset_dict, person_list, action_list)
 
 
 

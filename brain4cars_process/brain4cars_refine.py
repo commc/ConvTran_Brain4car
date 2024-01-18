@@ -45,10 +45,10 @@ def grouping(face_dataset_original):
                 road_video_path = os.path.normpath(os.sep.join(road_video_name_list))
                 
                 # filter face_video
-                # face_video_time, face_save_flag =  filter(thred, face_video_path)
+                # face_video_time, face_save_flag =  filter_by_video(thred, face_video_path)
                 face_video_time, face_save_flag = filter_by_mat(thred, face_video_path)
                 # filter video_path
-                # road_video_time, road_save_flag = filter(thred, road_video_path)
+                # road_video_time, road_save_flag = filter_by_video(thred, road_video_path)
                 
                 if not face_save_flag:
                     face_filterd_files.append(face_video_path)
@@ -99,7 +99,7 @@ def filter_by_mat(thred, action):
 
 
 # 过滤掉时长少于thred秒的视频
-def filter(thred ,video_path):
+def filter_by_video(thred ,video_path):
     cap = cv2.VideoCapture(video_path)
     if cap.isOpened():
         video_length = float(cap.get(cv2.CAP_PROP_FRAME_COUNT))

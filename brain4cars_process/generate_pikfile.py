@@ -55,9 +55,9 @@ def generate_pikfile(file_path, data_type):
 
 
 if __name__ == '__main__':
-    train_path = '/home/ubuntu/zsj/GTN-master/dataset/annotations/trainset/brain4cars_train_dataset_random_20frame.json'
-    valid_path = '/home/ubuntu/zsj/GTN-master/dataset/annotations/validset/brain4cars_valid_dataset_random_20frame.json'
-    test_path = '/home/ubuntu/zsj/GTN-master/dataset/annotations/testset/brain4cars_test_dataset_random_20frame.json'
+    train_path = '/home/ubuntu/zsj/GTN-master/dataset/annotations/trainset/brain4cars_train_dataset_random_20frame_aug.json'
+    valid_path = '/home/ubuntu/zsj/GTN-master/dataset/annotations/validset/brain4cars_valid_dataset_random_20frame_aug.json'
+    test_path = '/home/ubuntu/zsj/GTN-master/dataset/annotations/testset/brain4cars_test_dataset_random_20frame_aug.json'
     generate_pikfile(train_path, data_type='train')
     generate_pikfile(valid_path, data_type='valid')
-    generate_pikfile(test_path, data_type='test')
+    # generate_pikfile(test_path, data_type='test')

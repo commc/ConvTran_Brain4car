@@ -45,12 +45,16 @@ class Brain4carDataset(Dataset):
                 except Exception as e:
                     raise Exception(f'Error loading csv from {csv_file}') from e
                 dataset.append(table_value)
+                # non_zero_count = np.count_nonzero(table_value)
+                # if non_zero_count < 0.5 * table_value.size:
+                #     print(csv_file)
             
-            dataset = np.array(dataset)[:,:,:15]
+            dataset = np.array(dataset)
             labels = np.array(labels)
             input_len = dataset.shape[1]
             input_channel = dataset.shape[-1]
-            output_len = len(tuple(set(labels)))
+            # output_len = len(tuple(set(labels)))
+            output_len = 6
             dataset_len = dataset.shape[0]
             max_length_sample_inTest = []
             labels = torch.Tensor(labels)    
@@ -75,10 +79,10 @@ class Brain4carDataset(Dataset):
             if 1 in labels_shape:
                 labels = np.squeeze(labels)
             
-            if dataset_shape[0] < dataset_shape[1]:
-                dataset = dataset.transpose((1, 0, 2))
-            if labels_shape[0] < labels_shape[1]:
-                labels = labels.transpose((1, 0))
+            # if dataset_shape[0] < dataset_shape[1]:
+            #     dataset = dataset.transpose((1, 0, 2))
+            # if labels_shape[0] < labels_shape[1]:
+            #     labels = labels.transpose((1, 0))
             # labels = labels[:,:,np.newaxis]
             
             # label_mask = labels == 0
@@ -91,8 +95,7 @@ class Brain4carDataset(Dataset):
             labels = torch.Tensor(labels)    
             dataset = torch.Tensor(dataset).float()
             for i in dataset:
-                max_length_sample_inTest.append(i)
-            
+                max_length_sample_inTest.append(i)            
         else:
             raise FileNotFoundError
         return dataset, labels, input_len, input_channel, output_len, dataset_len, max_length_sample_inTest
@@ -100,7 +103,7 @@ class Brain4carDataset(Dataset):
 
 
 if __name__ == '__main__':
-    dataset = Brain4carDataset('/home/ubuntu/zsj/GTN-master/dataset/annotations/testset/test_data_846483_fold2.pik')
+    dataset = Brain4carDataset('/home/dulab/ML/Code_project/GTN-master/brain4cars_pipeline/temp_data/folder1/brain4cars_valid_dataset_mediapipe_random.pik')
     print(dataset)
 
 
