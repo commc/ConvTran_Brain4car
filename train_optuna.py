@@ -300,7 +300,7 @@ def objective(trial):
     opt.random_seed = trial.suggest_int("seed", 0, 2000)
     setup_seed(opt.random_seed)
     logger.info(opt)
-    device = torch.device('cuda:0' if torch.cuda.is_available() and opt.device != "cpu" else "cpu")
+    device = torch.device('cuda:1' if torch.cuda.is_available() and opt.device != "cpu" else "cpu")
     f1 = kFolderValidation(opt, device)
     return f1
 

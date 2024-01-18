@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 # setup_seed(16)
 
 def set_logging():
-    logging.basicConfig(filename='runs/results.log' ,format="%(message)s",level=logging.INFO)
+    logging.basicConfig(filename='runs/results2.log' ,format="%(message)s",level=logging.INFO)
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
     console_handler.setFormatter(logging.Formatter("%(message)s"))
@@ -121,8 +121,8 @@ def train(opt, DEVICE):
         net = Transformer_multilabel(d_model=d_model, d_input=d_input, d_channel=d_channel, d_output=d_output, d_hidden=d_hidden,
                     q=q, v=v, h=h, N=N, dropout=dropout, pe=pe, mask=mask, device=DEVICE).to(DEVICE)
     elif opt.model == 'ConvTran':
-        net = ConvTran(d_model=32, d_input=d_input, d_channel=d_channel, d_hidden=256,  heads=h, d_dropout=0.01, num_classes=d_output).to(DEVICE)
-    
+        net = ConvTran(d_model=d_model, d_input=d_input, d_channel=d_channel, d_hidden=d_hidden,  heads=h, d_dropout=dropout, num_classes=d_output).to(DEVICE)
+    logger.info("\nNetwork: {}".format(net))
     logger.info("Total number of parameters: {}".format(count_parameters(net)))
     loss_function = Myloss()
     if optimizer_name == 'Adagrad':
@@ -259,18 +259,18 @@ if __name__ == '__main__':
     parser.add_argument('--train_path', type=str, default="./brain4cars_pipeline/temp_data/folder5/brain4cars_train_dataset_mediapipe_random4.json", help="train dataset path")
     parser.add_argument('--test_path', type=str, default="./brain4cars_pipeline/temp_data/folder5/brain4cars_valid_dataset_mediapipe_random4.json", help="train dataset path")
     parser.add_argument('--epochs', type=int, default=150)
-    parser.add_argument('--batch-size', type=int, default=32, help="total batch size for GPUs")
-    parser.add_argument('--lr', type=float, default=0.001, help="learning rate 0.00017358693285391162")
+    parser.add_argument('--batch-size', type=int, default=64, help="total batch size for GPUs")
+    parser.add_argument('--lr', type=float, default=0.0027205809988263946, help="learning rate 0.001")
     parser.add_argument('--optimizer', type=str, default="Adagrad", help="optimizer for back propogation")
     parser.add_argument('--device', type=str, default="0", help="cuda device, i.e. 0,1,2,3 or cpu")
     parser.add_argument('--model', type=str, default='ConvTran', help="model name")
-    parser.add_argument('--d-model', type=int, default=512, help="embedding dimension")
-    parser.add_argument('--d-hidden', type=int, default=1024, help="fully connected layer hidden dimension")
+    parser.add_argument('--d-model', type=int, default=32, help="embedding dimension")
+    parser.add_argument('--d-hidden', type=int, default=256, help="fully connected layer hidden dimension")
     parser.add_argument('--q', type=int, default=8, help="querry ")
     parser.add_argument('--v', type=int, default=8, help="value")
     parser.add_argument('--h', type=int, default=8, help="n heads")
     parser.add_argument('--N', type=int, default=4, help="n encoders")
-    parser.add_argument('--dropout', type=float, default=0.01, help="0.1")
+    parser.add_argument('--dropout', type=float, default=0.005, help="0.01")
     parser.add_argument('--pe', type=bool, default=True, help=" positional embefding")
     parser.add_argument('--mask', type=bool, default=True, help="mask for step encoder")
     parser.add_argument('--reslut_figure_path', type=str, default="result_figure", help="path for saving figures")
@@ -280,7 +280,7 @@ if __name__ == '__main__':
     parser.add_argument('--kfolder_filename', type=str, default="brain4cars_train_dataset_mediapipe_random5.pik")
     parser.add_argument('--test-interval', type=int, default=1, help="after test interval epochs training, test")
     parser.add_argument('--draw-key', type=int, default=1, help="1")
-    parser.add_argument('--random-seed', type=int, default=1234)
+    parser.add_argument('--random-seed', type=int, default=157)
     
     opt = parser.parse_args()
     set_logging()
