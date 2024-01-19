@@ -2,6 +2,7 @@
 *.pkl
 *.png
 *.jpg
+<<<<<<< HEAD
 *.db
 result_figure/*
 result_figure_optuna/*
@@ -11,3 +12,11 @@ MTS_dataset/*
 heatmap_figure_in_test/*
 runs/*
 gather_figure/*
+=======
+/result_figure/*
+/result_figure_optuna/`
+/dataset/annotations/*
+/brain4cars_pipeline/temp_data/*
+/MTS_dataset/
+/heatmap_figure_in_test/
+>>>>>>> 0bde731 (logs)
